@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">-
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noor — Islamic Prayer Times & Qibla Finder</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            emerald: {
+              850: '#06422b',
+              900: '#063825',
+              950: '#032317',
+            },
+            gold: {
+              400: '#f5c968',
+              500: '#e5b23a',
+              600: '#ca9724',
+              700: '#9b7012',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            arabic: ['Amiri', 'Traditional Arabic', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts for Typography & Arabic Script -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* Islamic Geometric Pattern Subtle Overlays */
+    .islamic-pattern {
+      background-color: transparent;
+      background-image: radial-gradient(rgba(229, 178, 58, 0.08) 1.5px, transparent 1.5px), radial-gradient(rgba(229, 178, 58, 0.08) 1.5px, transparent 1.5px);
+      background-size: 28px 28px;
+      background-position: 0 0, 14px 14px;
+    }
+    
+    .gold-glow {
+      box-shadow: 0 0 25px -3px rgba(229, 178, 58, 0.35);
+    }
+    
+    .gold-gradient-text {
+      background: linear-gradient(135deg, #fbe8a6 0%, #e5b23a 50%, #ca9724 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .compass-dial {
+      transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+      transform-origin: center center;
+    }
+
+    /* Print styling for monthly timetable */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-section, #print-section * {
+        visibility: visible;
+      }
+      #print-section {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(229, 178, 58, 0.3);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(229, 178, 58, 0.6);
+    }
+  </style>
+</head>
+<body class="bg-stone-50 dark:bg-emerald-950 text-stone-800 dark:text-stone-100 min-h-screen transition-colors duration-300 font-sans islamic-pattern relative flex flex-col selection:bg-gold-500 selection:text-emerald-950">
+
+  <!-- Top Notification Toast -->
+  <div id="toast" class="fixed top-5 right-5 z-50 transform translate-y-[-120%] opacity-0 transition-all duration-300 pointer-events-none bg-emerald-900 border border-gold-500/40 text-stone-100 px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3">
+    <div id="toast-icon" class="text-gold-400 text-lg"><i class="fa-solid fa-circle-info"></i></div>
+    <div id="toast-message" class="text-sm font-medium">Notification message</div>
+  </div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-stone-100/85 dark:bg-emerald-950/85 border-b border-stone-200 dark:border-emerald-800/60 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-800 to-emerald-600 dark:from-emerald-900 dark:to-emerald-700 border border-gold-500/50 flex items-center justify-center shadow-md">
+          <i class="fa-solid fa-mosque text-gold-400 text-xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-bold tracking-tight gold-gradient-text">NOOR</span>
+            <span class="text-xs uppercase tracking-widest font-semibold px-2 py-0.5 rounded-full bg-gold-500/10 text-gold-600 dark:text-gold-400 border border-gold-500/30">نُور</span>
+          </div>
+          <p class="text-xs text-stone-500 dark:text-stone-400">Prayer Times &amp; Qibla Sanctuary</p>
+        </div>
+      </div>
+
+      <!-- Quick Location & Global Controls -->
+      <div class="flex items-center gap-2 sm:gap-4">
+        <!-- Live Current City Display -->
+        <button id="location-modal-btn" class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-stone-200/70 dark:bg-emerald-900/60 hover:bg-gold-500/10 border border-stone-300 dark:border-emerald-700/60 hover:border-gold-500/50 transition duration-200 text-stone-700 dark:text-stone-200">
+          <i class="fa-solid fa-location-dot text-gold-500 text-sm"></i>
+          <span id="current-location-text" class="max-w-[120px] sm:max-w-[200px] truncate font-semibold">Locating...</span>
+          <i class="fa-solid fa-chevron-down text-xs opacity-60"></i>
+        </button>
+
+        <!-- Audio Preview & Toggle -->
+        <button id="audio-toggle-btn" title="Toggle prayer sound alerts" class="p-2.5 rounded-xl text-stone-600 dark:text-stone-300 hover:text-gold-500 dark:hover:text-gold-400 bg-stone-200/50 dark:bg-emerald-900/40 hover:bg-gold-500/10 border border-stone-300 dark:border-emerald-800 transition">
+          <i id="audio-icon" class="fa-solid fa-volume-high text-base"></i>
+        </button>
+
+        <!-- Settings Modal Trigger -->
+        <button id="settings-modal-btn" title="Calculation Settings" class="p-2.5 rounded-xl text-stone-600 dark:text-stone-300 hover:text-gold-500 dark:hover:text-gold-400 bg-stone-200/50 dark:bg-emerald-900/40 hover:bg-gold-500/10 border border-stone-300 dark:border-emerald-800 transition">
+          <i class="fa-solid fa-gear text-base"></i>
+        </button>
+
+        <!-- Dark / Light Mode Switch -->
+        <button id="theme-toggle-btn" title="Toggle Theme" class="p-2.5 rounded-xl text-stone-600 dark:text-stone-300 hover:text-gold-500 dark:hover:text-gold-400 bg-stone-200/50 dark:bg-emerald-900/40 hover:bg-gold-500/10 border border-stone-300 dark:border-emerald-800 transition">
+          <i id="theme-icon" class="fa-solid fa-sun text-base text-gold-500"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mt-4 no-print">
+    <nav class="flex space-x-2 border-b border-stone-200 dark:border-emerald-800/70 overflow-x-auto pb-1 scrollbar-none">
+      <button class="nav-tab active-tab px-4 py-2.5 rounded-t-xl text-sm font-semibold flex items-center gap-2 border-b-2 border-gold-500 text-gold-600 dark:text-gold-400 bg-gold-500/10 dark:bg-emerald-900/50" data-target="tab-prayers">
+        <i class="fa-solid fa-clock"></i> <span>Prayer Times</span>
+      </button>
+      <button class="nav-tab px-4 py-2.5 rounded-t-xl text-sm font-semibold flex items-center gap-2 border-b-2 border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-200/40 dark:hover:bg-emerald-900/30 transition" data-target="tab-qibla">
+        <i class="fa-solid fa-compass"></i> <span>Qibla Finder</span>
+      </button>
+      <button class="nav-tab px-4 py-2.5 rounded-t-xl text-sm font-semibold flex items-center gap-2 border-b-2 border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-200/40 dark:hover:bg-emerald-900/30 transition" data-target="tab-timetable">
+        <i class="fa-solid fa-calendar-days"></i> <span>Monthly Timetable</span>
+      </button>
+      <button class="nav-tab px-4 py-2.5 rounded-t-xl text-sm font-semibold flex items-center gap-2 border-b-2 border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-200/40 dark:hover:bg-emerald-900/30 transition" data-target="tab-tasbih">
+        <i class="fa-solid fa-ring"></i> <span>Digital Tasbih</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Main Content Body -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== TAB 1: PRAYER TIMES & DASHBOARD ==================== -->
+    <section id="tab-prayers" class="tab-content space-y-6">
+      
+      <!-- HERO COUNTDOWN & CLOCK BANNER -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-850 to-emerald-950 text-white p-6 sm:p-8 lg:p-10 border border-gold-500/30 shadow-2xl">
+        <!-- Islamic Arch & Star Watermark Background -->
+        <div class="absolute -right-16 -top-16 opacity-10 pointer-events-none">
+          <i class="fa-solid fa-kaaba text-[280px] text-gold-400"></i>
+        </div>
+
+        <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          
+          <!-- Left: Current Time & Hijri Date -->
+          <div class="lg:col-span-5 space-y-3 text-center lg:text-left">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/20 border border-gold-500/40 text-gold-300 text-xs font-medium">
+              <span class="w-2 h-2 rounded-full bg-gold-400 animate-ping"></span>
+              <span id="hero-hijri-date">1448 Hijri</span>
+            </div>
+            
+            <h1 id="live-time-clock" class="text-5xl sm:text-6xl font-extrabold tracking-tight font-mono text-stone-100">
+              00:00:00
+            </h1>
+            
+            <p id="hero-gregorian-date" class="text-sm sm:text-base text-stone-300 font-medium">
+              Loading current date...
+            </p>
+            
+            <div class="flex items-center justify-center lg:justify-start gap-2 text-xs text-stone-400">
+              <i class="fa-solid fa-map-pin text-gold-400"></i>
+              <span id="hero-coords-display">Calculating coordinates...</span>
+            </div>
+          </div>
+
+          <!-- Right: Next Prayer Countdown Card -->
+          <div class="lg:col-span-7 bg-emerald-950/60 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-gold-500/20">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-emerald-800/60">
+              <div>
+                <span class="text-xs uppercase tracking-wider text-gold-400 font-semibold block text-center sm:text-left">Upcoming Prayer</span>
+                <div class="flex items-baseline gap-2 justify-center sm:justify-start">
+                  <h2 id="next-prayer-name" class="text-3xl font-bold text-white tracking-wide">--</h2>
+                  <span id="next-prayer-time" class="text-lg text-gold-300 font-mono font-medium">--:--</span>
+                </div>
+              </div>
+              <!-- Countdown Display -->
+              <div class="text-center sm:text-right">
+                <span class="text-xs text-stone-400 font-medium block">Time Remaining</span>
+                <div id="countdown-timer" class="text-3xl sm:text-4xl font-mono font-bold text-gold-400">
+                  00h 00m 00s
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress Bar to Next Prayer -->
+            <div class="mt-4 space-y-1.5">
+              <div class="flex justify-between text-xs text-stone-300">
+                <span id="progress-prev-prayer">Current</span>
+                <span id="progress-percent">0%</span>
+                <span id="progress-next-prayer">Next</span>
+              </div>
+              <div class="w-full bg-emerald-900/80 rounded-full h-2.5 overflow-hidden border border-emerald-700/50">
+                <div id="prayer-progress-bar" class="bg-gradient-to-r from-gold-600 via-gold-400 to-amber-300 h-2.5 rounded-full transition-all duration-500" style="width: 25%"></div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between text-xs text-stone-300">
+              <div class="flex items-center gap-1.5">
+                <i class="fa-solid fa-compass text-gold-400"></i>
+                <span>Qibla: <strong id="hero-qibla-angle" class="text-gold-300">--°</strong></span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button id="btn-quick-adhan-sample" class="px-2.5 py-1 rounded bg-gold-500/20 hover:bg-gold-500/30 text-gold-300 border border-gold-500/30 flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-bell"></i> <span>Play Chime</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- PRAYER TIME CARDS GRID -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4" id="prayer-cards-container">
+        <!-- Dynamically Populated with Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha -->
+      </div>
+
+      <!-- DUAL INSPIRATIONAL & BENEFIT ROW: AYAT & HADITH -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Daily Ayat / Dua Card -->
+        <div class="rounded-2xl p-6 bg-white dark:bg-emerald-900/40 border border-stone-200 dark:border-emerald-800/80 shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div class="absolute top-0 right-0 transform translate-x-4 -translate-y-4 opacity-5 dark:opacity-10 text-stone-900 dark:text-gold-400 pointer-events-none text-9xl">
+            <i class="fa-solid fa-quran"></i>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gold-600 dark:text-gold-400 bg-gold-500/10 px-3 py-1 rounded-full border border-gold-500/20">
+                <i class="fa-solid fa-book-quran"></i> Ayat / Remembrance
+              </span>
+              <button id="refresh-ayat-btn" title="Refresh Ayat" class="text-xs text-stone-400 hover:text-gold-500 transition p-1">
+                <i class="fa-solid fa-rotate-right"></i>
+              </button>
+            </div>
+            <!-- Arabic Script -->
+            <p id="daily-ayat-arabic" class="font-arabic text-right text-xl sm:text-2xl leading-relaxed text-stone-900 dark:text-gold-300 mb-3 font-semibold" dir="rtl">
+              رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ
+            </p>
+            <!-- Translation -->
+            <p id="daily-ayat-translation" class="text-sm text-stone-600 dark:text-stone-300 italic mb-2">
+              "Our Lord, give us in this world that which is good and in the Hereafter that which is good and protect us from the punishment of the Fire."
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-stone-200 dark:border-emerald-800/60 flex items-center justify-between text-xs text-stone-400">
+            <span id="daily-ayat-ref" class="font-semibold text-stone-500 dark:text-stone-400">Surah Al-Baqarah 2:201</span>
+            <button id="copy-ayat-btn" class="hover:text-gold-400 flex items-center gap-1 transition">
+              <i class="fa-regular fa-copy"></i> Copy
+            </button>
+          </div>
+        </div>
+
+        <!-- Prayer Information & Jurisprudence Summary -->
+        <div class="rounded-2xl p-6 bg-white dark:bg-emerald-900/40 border border-stone-200 dark:border-emerald-800/80 shadow-sm flex flex-col justify-between">
+          <div>
+            <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 mb-4">
+              <i class="fa-solid fa-circle-check"></i> Calculation Details
+            </span>
+            <div class="space-y-3 text-sm">
+              <div class="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-emerald-800/50">
+                <span class="text-stone-500 dark:text-stone-400">Calculation Method</span>
+                <span id="summary-method-name" class="font-semibold text-stone-800 dark:text-stone-200">Muslim World League</span>
+              </div>
+              <div class="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-emerald-800/50">
+                <span class="text-stone-500 dark:text-stone-400">Asr Juristic Rule</span>
+                <span id="summary-asr-method" class="font-semibold text-stone-800 dark:text-stone-200">Standard (Shafi'i, Maliki, Hanbali)</span>
+              </div>
+              <div class="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-emerald-800/50">
+                <span class="text-stone-500 dark:text-stone-400">Distance to Kaaba</span>
+                <span id="summary-kaaba-dist" class="font-mono font-semibold text-gold-600 dark:text-gold-400">-- km</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-stone-500 dark:text-stone-400">High Latitude Rule</span>
+                <span class="font-semibold text-stone-800 dark:text-stone-200">Angle-Based (1/7th Night)</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-stone-200 dark:border-emerald-800/60 flex items-center justify-between text-xs">
+            <span class="text-stone-400">Need specific adjustments?</span>
+            <button onclick="document.getElementById('settings-modal-btn').click()" class="text-gold-600 dark:text-gold-400 font-semibold hover:underline">
+              Customize Settings &rarr;
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 2: INTERACTIVE QIBLA FINDER ==================== -->
+    <section id="tab-qibla" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        
+        <!-- Left: Interactive Dial & Compass Visualizer -->
+        <div class="lg:col-span-7 flex flex-col items-center justify-center p-6 sm:p-10 bg-white dark:bg-emerald-900/40 rounded-3xl border border-stone-200 dark:border-emerald-800/80 shadow-xl">
+          
+          <div class="relative w-72 h-72 sm:w-96 sm:h-96 flex items-center justify-center select-none">
+            
+            <!-- Outer Compass Ring (Degree ticks) -->
+            <div id="compass-outer" class="compass-dial absolute inset-0 rounded-full border-4 border-dashed border-stone-300 dark:border-emerald-700/60 flex items-center justify-center shadow-inner">
+              <!-- Cardinal Points -->
+              <span class="absolute top-2 font-bold text-red-500 dark:text-red-400 text-sm tracking-wider">N</span>
+              <span class="absolute right-3 font-bold text-stone-500 dark:text-stone-400 text-sm">E</span>
+              <span class="absolute bottom-2 font-bold text-stone-500 dark:text-stone-400 text-sm">S</span>
+              <span class="absolute left-3 font-bold text-stone-500 dark:text-stone-400 text-sm">W</span>
+              
+              <!-- Inner Graduated Circles -->
+              <div class="w-5/6 h-5/6 rounded-full border border-stone-200 dark:border-emerald-800/70 flex items-center justify-center">
+                <div class="w-4/6 h-4/6 rounded-full border border-gold-500/20"></div>
+              </div>
+            </div>
+
+            <!-- Kaaba Target Pointer (Fixed bearing relative to North) -->
+            <div id="kaaba-pointer-container" class="absolute inset-0 flex items-center justify-center transition-transform duration-300 pointer-events-none">
+              <div class="w-full h-full relative flex items-center justify-center">
+                <!-- Kaaba Marker at bearing tip -->
+                <div class="absolute -top-3 flex flex-col items-center">
+                  <div class="w-8 h-8 rounded-lg bg-emerald-900 border-2 border-gold-400 flex items-center justify-center shadow-lg transform rotate-0 text-gold-300">
+                    <i class="fa-solid fa-kaaba text-base"></i>
+                  </div>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-gold-500 bg-emerald-950 px-1.5 py-0.5 rounded shadow mt-1">Qibla</span>
+                </div>
+                <!-- Needle line connecting center to Kaaba -->
+                <div class="w-0.5 h-1/2 bg-gradient-to-t from-transparent via-gold-500 to-gold-400 absolute top-0"></div>
+              </div>
+            </div>
+
+            <!-- Compass Needle (North-South pointer) -->
+            <div id="compass-needle" class="compass-dial absolute inset-0 flex items-center justify-center pointer-events-none">
+              <!-- Magnetic North Arrow (Red) -->
+              <div class="w-3 h-28 sm:h-36 bg-gradient-to-t from-red-600 to-red-400 rounded-t-full shadow-md absolute -top-2"></div>
+              <!-- Magnetic South Arrow (White/Gray) -->
+              <div class="w-3 h-28 sm:h-36 bg-gradient-to-b from-stone-400 to-stone-200 dark:from-stone-600 dark:to-stone-400 rounded-b-full shadow-md absolute -bottom-2"></div>
+              <!-- Center Pivot Pin -->
+              <div class="w-7 h-7 rounded-full bg-gold-500 border-2 border-white dark:border-emerald-950 shadow-lg z-20 flex items-center justify-center">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-950"></div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Compass Manual Rotate Slider (For Desktop testing & calibration) -->
+          <div class="w-full max-w-sm mt-8 space-y-2">
+            <div class="flex justify-between text-xs text-stone-500 dark:text-stone-400 font-medium">
+              <span>Manual Heading Adjust (Desktop / Simulation)</span>
+              <span id="manual-heading-val">0° (North)</span>
+            </div>
+            <input id="heading-slider" type="range" min="0" max="360" value="0" class="w-full h-2 bg-stone-200 dark:bg-emerald-800 rounded-lg appearance-none cursor-pointer accent-gold-500">
+          </div>
+
+          <!-- Mobile Device Orientation Sensor Button -->
+          <div class="mt-4 flex gap-3">
+            <button id="btn-calibrate-compass" class="px-4 py-2.5 rounded-xl bg-gold-500 text-emerald-950 font-bold text-sm shadow hover:bg-gold-400 active:scale-95 transition flex items-center gap-2">
+              <i class="fa-solid fa-mobile-screen"></i> <span>Calibrate / Device Compass</span>
+            </button>
+            <button id="btn-reset-heading" class="px-4 py-2.5 rounded-xl bg-stone-200 dark:bg-emerald-800 text-stone-800 dark:text-stone-200 font-medium text-sm hover:bg-stone-300 dark:hover:bg-emerald-700 transition">
+              Reset North
+            </button>
+          </div>
+
+          <p class="text-xs text-stone-500 dark:text-stone-400 text-center mt-3 max-w-xs">
+            Align the needle with the <span class="text-gold-500 font-semibold">Kaaba icon</span>. On mobile, hold device flat horizontally away from magnetic interference.
+          </p>
+
+        </div>
+
+        <!-- Right: Exact Qibla Trigonometry Telemetry & Kaaba Details -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <div class="bg-white dark:bg-emerald-900/40 rounded-3xl p-6 sm:p-8 border border-stone-200 dark:border-emerald-800/80 shadow-md">
+            <div class="flex items-center gap-2 text-gold-500 text-sm font-bold uppercase tracking-wider mb-2">
+              <i class="fa-solid fa-location-crosshairs"></i> Precise Bearing
+            </div>
+            
+            <div class="flex items-baseline gap-3">
+              <span id="qibla-angle-big" class="text-5xl font-extrabold text-stone-900 dark:text-stone-100 font-mono">0.0°</span>
+              <span id="qibla-cardinal-str" class="text-lg font-semibold text-stone-500 dark:text-stone-400">from North</span>
+            </div>
+
+            <p class="text-xs text-stone-500 dark:text-stone-400 mt-2">
+              Calculated using the great-circle forward azimuth formula towards the Holy Kaaba in Makkah al-Mukarramah.
+            </p>
+
+            <div class="mt-6 pt-6 border-t border-stone-200 dark:border-emerald-800/60 grid grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs text-stone-500 dark:text-stone-400 block">Distance (km)</span>
+                <span id="qibla-km-dist" class="text-xl font-bold font-mono text-stone-800 dark:text-stone-200">-- km</span>
+              </div>
+              <div>
+                <span class="text-xs text-stone-500 dark:text-stone-400 block">Distance (miles)</span>
+                <span id="qibla-miles-dist" class="text-xl font-bold font-mono text-stone-800 dark:text-stone-200">-- mi</span>
+              </div>
+              <div>
+                <span class="text-xs text-stone-500 dark:text-stone-400 block">Kaaba Coordinates</span>
+                <span class="text-xs font-mono font-semibold text-gold-600 dark:text-gold-400">21.4225° N, 39.8262° E</span>
+              </div>
+              <div>
+                <span class="text-xs text-stone-500 dark:text-stone-400 block">Current Location</span>
+                <span id="qibla-current-coords" class="text-xs font-mono font-semibold text-stone-700 dark:text-stone-300">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Qibla Etiquette & Verification Card -->
+          <div class="bg-gradient-to-br from-emerald-900/60 to-emerald-950/80 rounded-3xl p-6 border border-gold-500/20 text-stone-200 text-sm space-y-3">
+            <h4 class="font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-circle-question text-gold-400"></i> How to get an exact reading?
+            </h4>
+            <ul class="list-disc list-inside space-y-1.5 text-xs text-stone-300">
+              <li>Keep your mobile device flat on a non-metallic surface or the palm of your hand.</li>
+              <li>Calibrate by moving your phone in a figure-8 motion if the compass drifts.</li>
+              <li>Turn your body until the phone points directly at the Golden Kaaba icon.</li>
+              <li>Verify with known local mosque directions or landmarks when possible.</li>
+            </ul>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 3: MONTHLY PRAYER TIMETABLE ==================== -->
+    <section id="tab-timetable" class="tab-content hidden space-y-6">
+      
+      <div id="print-section" class="bg-white dark:bg-emerald-900/40 rounded-3xl p-6 sm:p-8 border border-stone-200 dark:border-emerald-800/80 shadow-md">
+        
+        <!-- Timetable Header Bar -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-stone-200 dark:border-emerald-800/60">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="timetable-title-month" class="text-2xl font-bold text-stone-900 dark:text-stone-100">Monthly Timetable</h2>
+              <span id="timetable-badge-year" class="text-xs px-2.5 py-1 rounded-full bg-gold-500/10 text-gold-600 dark:text-gold-400 font-semibold border border-gold-500/30">2026</span>
+            </div>
+            <p id="timetable-subtitle" class="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1">Calculated for current coordinates &amp; selected juristic rules</p>
+          </div>
+
+          <div class="flex items-center gap-2 no-print">
+            <button id="btn-month-prev" class="p-2.5 rounded-xl border border-stone-300 dark:border-emerald-700 hover:bg-stone-100 dark:hover:bg-emerald-800 text-stone-600 dark:text-stone-300 transition">
+              <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <button id="btn-month-next" class="p-2.5 rounded-xl border border-stone-300 dark:border-emerald-700 hover:bg-stone-100 dark:hover:bg-emerald-800 text-stone-600 dark:text-stone-300 transition">
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+            <button id="btn-print-timetable" class="px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-400 text-emerald-950 font-semibold text-xs sm:text-sm flex items-center gap-2 shadow transition">
+              <i class="fa-solid fa-print"></i> <span>Print / Save PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Responsive Timetable Table -->
+        <div class="mt-6 overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm border-collapse">
+            <thead>
+              <tr class="border-b border-stone-200 dark:border-emerald-800 text-stone-400 uppercase text-[11px] tracking-wider">
+                <th class="py-3 px-3">Day / Date</th>
+                <th class="py-3 px-3 text-gold-600 dark:text-gold-400 font-semibold">Fajr</th>
+                <th class="py-3 px-3">Sunrise</th>
+                <th class="py-3 px-3">Dhuhr</th>
+                <th class="py-3 px-3">Asr</th>
+                <th class="py-3 px-3">Maghrib</th>
+                <th class="py-3 px-3">Isha</th>
+              </tr>
+            </thead>
+            <tbody id="monthly-table-body" class="divide-y divide-stone-100 dark:divide-emerald-800/40 font-mono">
+              <!-- Populated dynamically via JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 4: DIGITAL TASBIH ==================== -->
+    <section id="tab-tasbih" class="tab-content hidden space-y-6">
+      
+      <div class="max-w-2xl mx-auto bg-white dark:bg-emerald-900/40 rounded-3xl p-6 sm:p-10 border border-stone-200 dark:border-emerald-800/80 shadow-xl text-center space-y-6">
+        
+        <!-- Dhikr Selector Dropdown -->
+        <div>
+          <label for="tasbih-phrase-select" class="block text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-2">Select Dhikr / Adhkar</label>
+          <select id="tasbih-phrase-select" class="w-full max-w-md mx-auto bg-stone-100 dark:bg-emerald-950 border border-stone-300 dark:border-emerald-700 rounded-xl px-4 py-2.5 text-stone-800 dark:text-stone-100 font-medium focus:ring-2 focus:ring-gold-500 outline-none">
+            <option value="SubhanAllah|سُبْحَانَ اللَّهِ|Glory be to Allah">SubhanAllah (سُبْحَانَ اللَّهِ)</option>
+            <option value="Alhamdulillah|الْحَمْدُ لِلَّهِ|Praise be to Allah">Alhamdulillah (الْحَمْدُ لِلَّهِ)</option>
+            <option value="Allahu Akbar|اللَّهُ أَكْبَرُ|Allah is the Greatest">Allahu Akbar (اللَّهُ أَكْبَرُ)</option>
+            <option value="La ilaha illallah|لَا إِلَٰهَ إِلَّا ٱللَّٰهُ|There is no deity but Allah">La ilaha illallah (لَا إِلَٰهَ إِلَّا ٱللَّٰهُ)</option>
+            <option value="Astaghfirullah|أَسْتَغْفِرُ اللَّهَ|I seek forgiveness from Allah">Astaghfirullah (أَسْتَغْفِرُ اللَّهَ)</option>
+            <option value="Salawat|اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ|Blessings upon the Prophet">Salawat (اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ)</option>
+          </select>
+        </div>
+
+        <!-- Current Arabic Dhikr Banner -->
+        <div class="py-4">
+          <p id="tasbih-arabic-display" class="font-arabic text-4xl sm:text-5xl text-gold-600 dark:text-gold-400 font-bold mb-2">سُبْحَانَ اللَّهِ</p>
+          <p id="tasbih-english-display" class="text-sm text-stone-600 dark:text-stone-300 italic">"Glory be to Allah"</p>
+        </div>
+
+        <!-- Big Interactive Digital Clicker Counter -->
+        <div class="flex flex-col items-center justify-center">
+          <button id="tasbih-counter-button" class="w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-gradient-to-b from-stone-100 to-stone-200 dark:from-emerald-900 dark:to-emerald-950 border-4 border-gold-500/60 shadow-2xl active:scale-95 transition transform flex flex-col items-center justify-center select-none cursor-pointer group hover:border-gold-400">
+            <span class="text-xs uppercase tracking-widest text-stone-500 dark:text-stone-400 group-hover:text-gold-400 transition">Count</span>
+            <span id="tasbih-number-display" class="text-6xl sm:text-7xl font-extrabold font-mono text-stone-900 dark:text-stone-100 group-hover:scale-105 transition">0</span>
+            <span class="text-xs text-gold-500 font-medium mt-1">Target: <span id="tasbih-target-num">33</span></span>
+          </button>
+        </div>
+
+        <!-- Progress and Cycles -->
+        <div class="flex items-center justify-center gap-6 text-sm text-stone-600 dark:text-stone-300 font-medium">
+          <div>Cycles Completed: <strong id="tasbih-cycles-count" class="text-gold-500 font-mono">0</strong></div>
+          <span class="text-stone-400">•</span>
+          <div>Total Today: <strong id="tasbih-total-count" class="text-gold-500 font-mono">0</strong></div>
+        </div>
+
+        <!-- Controls: Target selector & Reset -->
+        <div class="flex items-center justify-center gap-3 pt-4">
+          <button id="tasbih-target-33" class="px-3.5 py-1.5 rounded-lg border border-gold-500/50 bg-gold-500/10 text-gold-600 dark:text-gold-300 text-xs font-bold hover:bg-gold-500 hover:text-emerald-950 transition">33</button>
+          <button id="tasbih-target-99" class="px-3.5 py-1.5 rounded-lg border border-stone-300 dark:border-emerald-700 text-stone-600 dark:text-stone-300 text-xs font-bold hover:border-gold-500 transition">99</button>
+          <button id="tasbih-target-100" class="px-3.5 py-1.5 rounded-lg border border-stone-300 dark:border-emerald-700 text-stone-600 dark:text-stone-300 text-xs font-bold hover:border-gold-500 transition">100</button>
+          <button id="tasbih-reset-btn" class="px-4 py-1.5 rounded-lg bg-red-500/10 text-red-500 border border-red-500/30 text-xs font-bold hover:bg-red-500 hover:text-white transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== LOCATION SELECTION MODAL ==================== -->
+  <div id="location-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white dark:bg-emerald-950 border border-stone-200 dark:border-emerald-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+      
+      <div class="flex items-center justify-between border-b border-stone-200 dark:border-emerald-800/80 pb-4">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-map-location-dot text-gold-500 text-lg"></i>
+          <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100">Select Location</h3>
+        </div>
+        <button id="close-location-modal" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- GPS Auto Detect -->
+      <button id="btn-detect-gps" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 text-gold-300 font-semibold text-sm flex items-center justify-center gap-2 border border-gold-500/40 hover:brightness-110 active:scale-98 transition shadow">
+        <i class="fa-solid fa-crosshairs text-gold-400"></i>
+        <span>Use My Current Device GPS</span>
+      </button>
+
+      <!-- Preset Cities Search / Filter -->
+      <div class="space-y-2">
+        <label class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">Quick Pick Popular Islamic Centers</label>
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-stone-400 text-sm"></i>
+          <input id="city-search-input" type="text" placeholder="Search major cities (e.g. Multan, Makkah, London...)" class="w-full bg-stone-100 dark:bg-emerald-900/60 border border-stone-300 dark:border-emerald-800 rounded-xl pl-10 pr-4 py-2 text-sm text-stone-800 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 outline-none">
+        </div>
+        <div id="popular-cities-list" class="max-h-48 overflow-y-auto space-y-1 pt-2 pr-1">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Custom Coordinates Form -->
+      <div class="pt-4 border-t border-stone-200 dark:border-emerald-800/80 space-y-3">
+        <span class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">Custom Coordinates</span>
+        <div class="grid grid-cols-2 gap-3">
+          <input id="custom-lat" type="number" step="any" placeholder="Latitude (e.g. 30.15)" class="bg-stone-100 dark:bg-emerald-900/60 border border-stone-300 dark:border-emerald-800 rounded-xl px-3 py-2 text-xs text-stone-800 dark:text-stone-100 outline-none focus:ring-2 focus:ring-gold-500">
+          <input id="custom-lng" type="number" step="any" placeholder="Longitude (e.g. 71.52)" class="bg-stone-100 dark:bg-emerald-900/60 border border-stone-300 dark:border-emerald-800 rounded-xl px-3 py-2 text-xs text-stone-800 dark:text-stone-100 outline-none focus:ring-2 focus:ring-gold-500">
+        </div>
+        <button id="btn-apply-custom-coords" class="w-full py-2 bg-stone-200 dark:bg-emerald-800 text-stone-800 dark:text-stone-100 rounded-xl text-xs font-semibold hover:bg-gold-500 hover:text-emerald-950 transition">
+          Apply Custom Coordinates
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== CALCULATION SETTINGS MODAL ==================== -->
+  <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white dark:bg-emerald-950 border border-stone-200 dark:border-emerald-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+      
+      <div class="flex items-center justify-between border-b border-stone-200 dark:border-emerald-800/80 pb-4">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-gold-500 text-lg"></i>
+          <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100">Calculation Settings</h3>
+        </div>
+        <button id="close-settings-modal" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Calculation Method Convention -->
+        <div>
+          <label for="setting-method" class="block text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1.5">Calculation Method</label>
+          <select id="setting-method" class="w-full bg-stone-100 dark:bg-emerald-900/60 border border-stone-300 dark:border-emerald-800 rounded-xl px-3.5 py-2 text-sm text-stone-800 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 outline-none">
+            <option value="MWL">Muslim World League (MWL)</option>
+            <option value="ISNA">ISNA (Islamic Society of North America)</option>
+            <option value="EGYPT">Egyptian General Authority of Survey</option>
+            <option value="MAKKAH">Umm Al-Qura University, Makkah</option>
+            <option value="KARACHI">University of Islamic Sciences, Karachi</option>
+            <option value="TEHRAN">Institute of Geophysics, Univ of Tehran</option>
+          </select>
+        </div>
+
+        <!-- Asr Juristic School -->
+        <div>
+          <label for="setting-asr-school" class="block text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1.5">Asr Juristic Method</label>
+          <select id="setting-asr-school" class="w-full bg-stone-100 dark:bg-emerald-900/60 border border-stone-300 dark:border-emerald-800 rounded-xl px-3.5 py-2 text-sm text-stone-800 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 outline-none">
+            <option value="standard">Standard (Shafi'i, Maliki, Hanbali — Shadow = 1x)</option>
+            <option value="hanafi">Hanafi (Shadow = 2x)</option>
+          </select>
+        </div>
+
+        <!-- Time Format (12h vs 24h) -->
+        <div>
+          <label for="setting-time-format" class="block text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1.5">Time Display Format</label>
+          <select id="setting-time-format" class="w-full bg-stone-100 dark:bg-emerald-900/60 border border-stone-300 dark:border-emerald-800 rounded-xl px-3.5 py-2 text-sm text-stone-800 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 outline-none">
+            <option value="12h">12-Hour (AM / PM)</option>
+            <option value="24h">24-Hour Military Time</option>
+          </select>
+        </div>
+
+        <!-- Manual Minute Offsets (Optional Fine-tuning) -->
+        <div class="pt-2">
+          <label class="block text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1.5">Manual Minute Offset (Fajr / Maghrib)</label>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <span class="text-[11px] text-stone-400">Fajr adjustment:</span>
+              <input id="offset-fajr" type="number" value="0" class="w-full bg-stone-100 dark:bg-emerald-900/60 border border-stone-300 dark:border-emerald-800 rounded-xl px-3 py-1.5 text-xs text-stone-800 dark:text-stone-100">
+            </div>
+            <div>
+              <span class="text-[11px] text-stone-400">Maghrib adjustment:</span>
+              <input id="offset-maghrib" type="number" value="0" class="w-full bg-stone-100 dark:bg-emerald-900/60 border border-stone-300 dark:border-emerald-800 rounded-xl px-3 py-1.5 text-xs text-stone-800 dark:text-stone-100">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-stone-200 dark:border-emerald-800/80 flex justify-end gap-3">
+        <button id="btn-save-settings" class="px-5 py-2.5 bg-gold-500 hover:bg-gold-400 text-emerald-950 font-bold text-sm rounded-xl transition shadow">
+          Save Preferences
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-stone-200 dark:border-emerald-800/60 bg-stone-100 dark:bg-emerald-950/70 py-6 text-center text-xs text-stone-500 dark:text-stone-400 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-moon text-gold-400"></i>
+        <span>Noor Islamic Suite &bull; Rigorous Astronomical Calculations &bull; Kaaba Sanctuary Coordinates (21.4225° N, 39.8262° E)</span>
+      </div>
+      <div>
+        <span>May peace and blessings be upon you.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== JAVASCRIPT APPLICATION CORE ==================== -->
+  <script>
+    /**
+     * NOOR ISLAMIC PRAYER TIMES & QIBLA ENGINE
+     * Self-contained, zero-external-dependency calculation algorithms with Web Audio and Sensor APIS.
+     */
+
+    // --- Global State Management ---
+    const KAABA_COORDS = { lat: 21.422487, lng: 39.826206 };
+    
+    // Default location: Multan, Punjab, Pakistan (User context)
+    let state = {
+      locationName: "Multan, Pakistan",
+      lat: 30.1575,
+      lng: 71.5249,
+      method: "KARACHI", // University of Islamic Sciences, Karachi
+      asrSchool: "hanafi", // Standard in Pakistan/South Asia
+      timeFormat: "12h",
+      offsetFajr: 0,
+      offsetMaghrib: 0,
+      audioEnabled: true,
+      currentHeading: 0,
+      tasbihCount: 0,
+      tasbihTarget: 33,
+      tasbihCycles: 0,
+      tasbihTotal: 0,
+      currentPrayerTimes: null,
+      activePrayerIndex: -1,
+      nextPrayerIndex: -1,
+      selectedMonthOffset: 0
+    };
+
+    // Preset Cities
+    const POPULAR_CITIES = [
+      { name: "Multan, Pakistan", lat: 30.1575, lng: 71.5249, method: "KARACHI", asr: "hanafi" },
+      { name: "Makkah, Saudi Arabia", lat: 21.4225, lng: 39.8262, method: "MAKKAH", asr: "standard" },
+      { name: "Madinah, Saudi Arabia", lat: 24.4672, lng: 39.6111, method: "MAKKAH", asr: "standard" },
+      { name: "Jerusalem, Palestine", lat: 31.7683, lng: 35.2137, method: "MWL", asr: "standard" },
+      { name: "Cairo, Egypt", lat: 30.0444, lng: 31.2357, method: "EGYPT", asr: "standard" },
+      { name: "Istanbul, Turkey", lat: 41.0082, lng: 28.9784, method: "MWL", asr: "hanafi" },
+      { name: "Karachi, Pakistan", lat: 24.8607, lng: 67.0011, method: "KARACHI", asr: "hanafi" },
+      { name: "Lahore, Pakistan", lat: 31.5204, lng: 74.3587, method: "KARACHI", asr: "hanafi" },
+      { name: "Islamabad, Pakistan", lat: 33.6844, lng: 73.0479, method: "KARACHI", asr: "hanafi" },
+      { name: "Dubai, United Arab Emirates", lat: 25.2048, lng: 55.2708, method: "MAKKAH", asr: "standard" },
+      { name: "Kuala Lumpur, Malaysia", lat: 3.1390, lng: 101.6869, method: "MWL", asr: "standard" },
+      { name: "Jakarta, Indonesia", lat: -6.2088, lng: 106.8456, method: "MWL", asr: "standard" },
+      { name: "London, United Kingdom", lat: 51.5074, lng: -0.1278, method: "MWL", asr: "standard" },
+      { name: "New York, USA", lat: 40.7128, lng: -74.0060, method: "ISNA", asr: "standard" },
+      { name: "Toronto, Canada", lat: 43.6532, lng: -79.3832, method: "ISNA", asr: "standard" },
+      { name: "Sydney, Australia", lat: -33.8688, lng: 151.2093, method: "MWL", asr: "standard" }
+    ];
+
+    // Method Conventions & Angles
+    const METHOD_PARAMS = {
+      MWL: { fajrAngle: 18.0, ishaAngle: 17.0, name: "Muslim World League" },
+      ISNA: { fajrAngle: 15.0, ishaAngle: 15.0, name: "ISNA (North America)" },
+      EGYPT: { fajrAngle: 19.5, ishaAngle: 17.5, name: "Egyptian General Authority" },
+      MAKKAH: { fajrAngle: 18.5, ishaInterval: 90, name: "Umm Al-Qura, Makkah" }, // 90 min after Maghrib
+      KARACHI: { fajrAngle: 18.0, ishaAngle: 18.0, name: "Univ of Islamic Sciences, Karachi" },
+      TEHRAN: { fajrAngle: 17.7, ishaAngle: 14.0, name: "Univ of Tehran" }
+    };
+
+    // Inspirational Ayats / Duas Collection
+    const AYAT_COLLECTION = [
+      {
+        arabic: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
+        translation: "Our Lord, give us in this world that which is good and in the Hereafter that which is good and protect us from the punishment of the Fire.",
+        ref: "Surah Al-Baqarah 2:201"
+      },
+      {
+        arabic: "إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا",
+        translation: "Indeed, prayer has been decreed upon the believers a decree of specified times.",
+        ref: "Surah An-Nisa 4:103"
+      },
+      {
+        arabic: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
+        translation: "Unquestionably, by the remembrance of Allah hearts are assured.",
+        ref: "Surah Ar-Ra'd 13:28"
+      },
+      {
+        arabic: "رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ وَمِن ذُرِّيَّتِي ۚ رَبَّنَا وَتَقَبَّلْ دُعَاءِ",
+        translation: "My Lord, make me an establisher of prayer, and [many] from my descendants. Our Lord, and accept my supplication.",
+        ref: "Surah Ibrahim 14:40"
+      },
+      {
+        arabic: "فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ",
+        translation: "So remember Me; I will remember you. And be grateful to Me and do not deny Me.",
+        ref: "Surah Al-Baqarah 2:152"
+      }
+    ];
+
+    // ==========================================
+    // ASTRONOMICAL PRAYER CALCULATION ALGORITHM
+    // Standard spherical astronomy formulas
+    // ==========================================
+    
+    // Math degree conversions
+    const d2r = (d) => (d * Math.PI) / 180.0;
+    const r2d = (r) => (r * 180.0) / Math.PI;
+    const sinD = (d) => Math.sin(d2r(d));
+    const cosD = (d) => Math.cos(d2r(d));
+    const tanD = (d) => Math.tan(d2r(d));
+    const asinD = (x) => r2d(Math.asin(x));
+    const acosD = (x) => r2d(Math.acos(x));
+    const atan2D = (y, x) => r2d(Math.atan2(y, x));
+
+    // Normalize hours to 0..24
+    function fixHour(h) {
+      h = h - 24.0 * Math.floor(h / 24.0);
+      return h < 0 ? h + 24.0 : h;
+    }
+
+    // Normalize degrees to 0..360
+    function fixAngle(a) {
+      a = a - 360.0 * Math.floor(a / 360.0);
+      return a < 0 ? a + 360.0 : a;
+    }
+
+    // Solar Position Calculation for a given Julian Day
+    function sunPosition(julianDate) {
+      const D = julianDate - 2451545.0;
+      const g = fixAngle(357.529 + 0.98560028 * D);
+      const q = fixAngle(280.459 + 0.98564736 * D);
+      const L = fixAngle(q + 1.915 * sinD(g) + 0.020 * sinD(2 * g));
+      
+      const e = 23.439 - 0.00000036 * D;
+      const d = asinD(sinD(e) * sinD(L));
+      let ra = atan2D(cosD(e) * sinD(L), cosD(L)) / 15.0;
+      ra = fixHour(ra);
+      
+      const EqT = q / 15.0 - ra;
+      return { declination: d, equationOfTime: EqT };
+    }
+
+    function getJulianDate(year, month, day) {
+      if (month <= 2) {
+        year -= 1;
+        month += 12;
+      }
+      const A = Math.floor(year / 100);
+      const B = 2 - A + Math.floor(A / 4);
+      return Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + B - 1524.5;
+    }
+
+    // Calculate prayer times for a specified date
+    function calculatePrayerTimesForDate(date, lat, lng, methodCode, asrSchool) {
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const timezoneOffset = -date.getTimezoneOffset() / 60; // hours from UTC
+
+      const JDate = getJulianDate(year, month, day);
+      const sun = sunPosition(JDate);
+      const method = METHOD_PARAMS[methodCode] || METHOD_PARAMS.MWL;
+
+      // Solar Noon (Dhuhr)
+      const noon = fixHour(12 + timezoneOffset - lng / 15.0 - sun.equationOfTime);
+
+      // Sun Angle T-hour helper
+      function timeForAngle(angle, isMorning = false) {
+        const val = (-sinD(angle) - sinD(lat) * sinD(sun.declination)) / (cosD(lat) * cosD(sun.declination));
+        if (val > 1 || val < -1) return null; // Extreme latitudes edge
+        const hourAngle = acosD(val) / 15.0;
+        return isMorning ? noon - hourAngle : noon + hourAngle;
+      }
+
+      // Asr shadow length factor (1 for standard, 2 for hanafi)
+      const shadowFactor = asrSchool === 'hanafi' ? 2 : 1;
+      const asrAngleVal = atan2D(1, shadowFactor + tanD(Math.abs(lat - sun.declination)));
+      const asrTime = noon + (acosD((sinD(asrAngleVal) - sinD(lat) * sinD(sun.declination)) / (cosD(lat) * cosD(sun.declination))) / 15.0);
+
+      // Sunrise & Sunset (approx angle 0.833° for refraction & solar radius)
+      const sunrise = timeForAngle(0.833, true);
+      const sunset = timeForAngle(0.833, false);
+
+      // Fajr
+      let fajr = timeForAngle(method.fajrAngle, true);
+      if (fajr === null && sunrise !== null) {
+        // High latitude fallback: 1/7th of night before sunrise
+        fajr = sunrise - 1.5;
+      }
+
+      // Isha
+      let isha;
+      if (method.ishaInterval) {
+        // Umm Al-Qura uses fixed interval after sunset
+        isha = sunset + (method.ishaInterval / 60.0);
+      } else {
+        isha = timeForAngle(method.ishaAngle, false);
+        if (isha === null && sunset !== null) {
+          isha = sunset + 1.5;
+        }
+      }
+
+      // Apply minute manual offsets
+      const fajrDate = floatHourToDate(date, fajr + (state.offsetFajr / 60));
+      const sunriseDate = floatHourToDate(date, sunrise);
+      const dhuhrDate = floatHourToDate(date, noon);
+      const asrDate = floatHourToDate(date, asrTime);
+      const maghribDate = floatHourToDate(date, sunset + (state.offsetMaghrib / 60));
+      const ishaDate = floatHourToDate(date, isha);
+
+      return [
+        { id: 'fajr', name: 'Fajr', arabic: 'الفجر', date: fajrDate, icon: 'fa-cloud-sun' },
+        { id: 'sunrise', name: 'Sunrise', arabic: 'الشروق', date: sunriseDate, icon: 'fa-sun', isSunrise: true },
+        { id: 'dhuhr', name: 'Dhuhr', arabic: 'الظهر', date: dhuhrDate, icon: 'fa-sun' },
+        { id: 'asr', name: 'Asr', arabic: 'العصر', date: asrDate, icon: 'fa-mountain-sun' },
+        { id: 'maghrib', name: 'Maghrib', arabic: 'المغرب', date: maghribDate, icon: 'fa-cloud-meatball' },
+        { id: 'isha', name: 'Isha', arabic: 'العشاء', date: ishaDate, icon: 'fa-moon' }
+      ];
+    }
+
+    function floatHourToDate(baseDate, floatHour) {
+      if (floatHour == null || isNaN(floatHour)) floatHour = 12;
+      floatHour = fixHour(floatHour);
+      const hours = Math.floor(floatHour);
+      const remainderMinutes = (floatHour - hours) * 60;
+      const minutes = Math.floor(remainderMinutes);
+      const seconds = Math.floor((remainderMinutes - minutes) * 60);
+
+      const d = new Date(baseDate.getTime());
+      d.setHours(hours, minutes, seconds, 0);
+      return d;
+    }
+
+    // Format Date object into 12h or 24h string
+    function formatTimeString(dateObj, format = state.timeFormat) {
+      if (!dateObj || isNaN(dateObj.getTime())) return "--:--";
+      let h = dateObj.getHours();
+      const m = String(dateObj.getMinutes()).padStart(2, '0');
+      
+      if (format === '24h') {
+        return `${String(h).padStart(2, '0')}:${m}`;
+      } else {
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12;
+        h = h ? h : 12; // 0 hour is 12
+        return `${h}:${m} ${ampm}`;
+      }
+    }
+
+    // ==========================================
+    // SPHERICAL TRIGONOMETRY FOR QIBLA & DISTANCE
+    // ==========================================
+    function calculateQibla(lat1, lon1) {
+      const lat2 = KAABA_COORDS.lat;
+      const lon2 = KAABA_COORDS.lng;
+
+      // Great-circle initial bearing
+      const phi1 = d2r(lat1);
+      const phi2 = d2r(lat2);
+      const deltaLambda = d2r(lon2 - lon1);
+
+      const y = Math.sin(deltaLambda);
+      const x = Math.cos(phi1) * Math.tan(phi2) - Math.sin(phi1) * Math.cos(deltaLambda);
+      
+      let bearing = r2d(Math.atan2(y, x));
+      bearing = (bearing + 360) % 360; // Normalize 0..360
+
+      // Great-circle Haversine distance
+      const R = 6371; // Earth radius in km
+      const dLat = d2r(lat2 - lat1);
+      const dLon = d2r(lon2 - lon1);
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(phi1) * Math.cos(phi2) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distanceKm = R * c;
+      const distanceMiles = distanceKm * 0.621371;
+
+      return {
+        bearing: bearing,
+        distanceKm: Math.round(distanceKm),
+        distanceMiles: Math.round(distanceMiles)
+      };
+    }
+
+    // ==========================================
+    // ISLAMIC HIJRI DATE CONVERSION (Umm Al-Qura / Tabular)
+    // ==========================================
+    function getHijriDate(date) {
+      // Intl format support with fallback
+      try {
+        const hijriFormatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+        return hijriFormatter.format(date);
+      } catch (e) {
+        // Fallback approximation
+        return "1448 Hijri";
+      }
+    }
+
+    // ==========================================
+    // AUDIO SYNTHESIS / NOTIFICATION CHIME
+    // Pure Web Audio API chime (Zero external audio assets)
+    // ==========================================
+    let audioCtx = null;
+    function playAdhanNotificationChime() {
+      if (!state.audioEnabled) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!audioCtx) {
+          audioCtx = new AudioContext();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        // Play gentle multi-tone spiritual bell chord (Fajr chime)
+        const notes = [440, 554.37, 659.25, 880]; // A4 Major chord
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.15);
+
+          gain.gain.setValueAtTime(0, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.2 / (idx + 1), audioCtx.currentTime + idx * 0.15 + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + idx * 0.15 + 2.5);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(audioCtx.currentTime + idx * 0.15);
+          osc.stop(audioCtx.currentTime + idx * 0.15 + 2.6);
+        });
+        
+        showToast("Adhan prayer alert chime played", "fa-bell");
+      } catch (err) {
+        console.error("Audio synthesis notice:", err);
+      }
+    }
+
+    // ==========================================
+    // UI TOAST SYSTEM (Replacement for alert)
+    // ==========================================
+    function showToast(message, icon = "fa-circle-info") {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toast-message');
+      const iconEl = document.getElementById('toast-icon');
+
+      msgEl.textContent = message;
+      iconEl.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+
+      toast.classList.remove('opacity-0', 'translate-y-[-120%]', 'pointer-events-none');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-[-120%]', 'pointer-events-none');
+      }, 3500);
+    }
+
+    // ==========================================
+    // CORE RENDER & UPDATE FUNCTIONS
+    // ==========================================
+    
+    // Refresh calculations and UI elements
+    function updateAll() {
+      const now = new Date();
+
+      // Update dates & live clock
+      document.getElementById('live-time-clock').textContent = now.toTimeString().split(' ')[0];
+      
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('hero-gregorian-date').textContent = now.toLocaleDateString('en-US', options);
+      document.getElementById('hero-hijri-date').textContent = getHijriDate(now);
+
+      // Hero coordinates & location
+      document.getElementById('current-location-text').textContent = state.locationName;
+      document.getElementById('hero-coords-display').textContent = `${state.lat.toFixed(4)}° N, ${state.lng.toFixed(4)}° E &bull; ${state.locationName}`;
+
+      // Calculate today's prayer times
+      const todayTimes = calculatePrayerTimesForDate(now, state.lat, state.lng, state.method, state.asrSchool);
+      state.currentPrayerTimes = todayTimes;
+
+      // Also calculate tomorrow's Fajr for overnight countdown
+      const tomorrow = new Date(now.getTime() + 86400000);
+      const tomorrowTimes = calculatePrayerTimesForDate(tomorrow, state.lat, state.lng, state.method, state.asrSchool);
+      const tomorrowFajr = tomorrowTimes[0];
+
+      // Determine active and next prayer
+      let activeIndex = -1;
+      let nextIndex = -1;
+
+      for (let i = 0; i < todayTimes.length; i++) {
+        if (now >= todayTimes[i].date) {
+          activeIndex = i;
+        } else {
+          if (nextIndex === -1) nextIndex = i;
+        }
+      }
+
+      let nextPrayerObj = null;
+      let prevPrayerObj = null;
+
+      if (nextIndex !== -1) {
+        nextPrayerObj = todayTimes[nextIndex];
+        prevPrayerObj = activeIndex >= 0 ? todayTimes[activeIndex] : null;
+      } else {
+        // After Isha, next prayer is tomorrow's Fajr
+        nextIndex = 0;
+        nextPrayerObj = tomorrowFajr;
+        prevPrayerObj = todayTimes[todayTimes.length - 1]; // Isha
+      }
+
+      state.activePrayerIndex = activeIndex;
+      state.nextPrayerIndex = nextIndex;
+
+      // Update Countdown to Next Prayer
+      const diffMs = nextPrayerObj.date.getTime() - now.getTime();
+      if (diffMs > 0) {
+        const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+        document.getElementById('countdown-timer').textContent = 
+          `${String(diffHrs).padStart(2, '0')}h ${String(diffMins).padStart(2, '0')}m ${String(diffSecs).padStart(2, '0')}s`;
+        
+        // Progress bar between previous and next prayer
+        if (prevPrayerObj) {
+          const totalWindow = nextPrayerObj.date.getTime() - prevPrayerObj.date.getTime();
+          const elapsed = now.getTime() - prevPrayerObj.date.getTime();
+          const percent = Math.min(100, Math.max(0, Math.round((elapsed / totalWindow) * 100)));
+          document.getElementById('prayer-progress-bar').style.width = `${percent}%`;
+          document.getElementById('progress-percent').textContent = `${percent}%`;
+          document.getElementById('progress-prev-prayer').textContent = prevPrayerObj.name;
+          document.getElementById('progress-next-prayer').textContent = nextPrayerObj.name;
+        }
+      }
+
+      document.getElementById('next-prayer-name').textContent = nextPrayerObj.name;
+      document.getElementById('next-prayer-time').textContent = formatTimeString(nextPrayerObj.date);
+
+      // Render Prayer Cards
+      renderPrayerCards(todayTimes, activeIndex, nextIndex);
+
+      // Update Qibla Bearing Telemetry
+      const qiblaData = calculateQibla(state.lat, state.lng);
+      document.getElementById('hero-qibla-angle').textContent = `${qiblaData.bearing.toFixed(1)}°`;
+      document.getElementById('qibla-angle-big').textContent = `${qiblaData.bearing.toFixed(1)}°`;
+      document.getElementById('qibla-km-dist').textContent = `${qiblaData.distanceKm.toLocaleString()} km`;
+      document.getElementById('qibla-miles-dist').textContent = `${qiblaData.distanceMiles.toLocaleString()} mi`;
+      document.getElementById('summary-kaaba-dist').textContent = `${qiblaData.distanceKm.toLocaleString()} km`;
+      document.getElementById('qibla-current-coords').textContent = `${state.lat.toFixed(3)}°, ${state.lng.toFixed(3)}°`;
+
+      // Update Qibla Compass Needle visuals
+      updateCompassVisual(qiblaData.bearing);
+
+      // Calculation Summary Texts
+      document.getElementById('summary-method-name').textContent = METHOD_PARAMS[state.method]?.name || state.method;
+      document.getElementById('summary-asr-method').textContent = state.asrSchool === 'hanafi' ? "Hanafi (2x Shadow)" : "Standard (Shafi'i/Maliki/Hanbali)";
+    }
+
+    // Render individual prayer cards
+    function renderPrayerCards(prayers, activeIdx, nextIdx) {
+      const container = document.getElementById('prayer-cards-container');
+      container.innerHTML = '';
+
+      prayers.forEach((prayer, idx) => {
+        const isNext = (nextIdx === idx && (!prayer.isSunrise));
+        const isActive = (activeIdx === idx);
+
+        let borderClass = 'border-stone-200 dark:border-emerald-800/80';
+        let bgClass = 'bg-white dark:bg-emerald-900/40';
+        let badgeHtml = '';
+
+        if (isNext) {
+          borderClass = 'border-gold-500 shadow-lg gold-glow';
+          bgClass = 'bg-gold-500/10 dark:bg-emerald-900/90';
+          badgeHtml = `<span class="absolute top-2.5 right-2.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gold-500 text-emerald-950">Next</span>`;
+        } else if (isActive) {
+          borderClass = 'border-emerald-500/60';
+          bgClass = 'bg-emerald-500/5 dark:bg-emerald-900/60';
+          badgeHtml = `<span class="absolute top-2.5 right-2.5 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300">Active</span>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = `relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 ${borderClass} ${bgClass} flex flex-col justify-between`;
+
+        card.innerHTML = `
+          ${badgeHtml}
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-xl ${isNext ? 'bg-gold-500 text-emerald-950' : 'bg-stone-100 dark:bg-emerald-800 text-gold-500'} flex items-center justify-center text-sm shadow-sm">
+              <i class="fa-solid ${prayer.icon}"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-stone-800 dark:text-stone-100">${prayer.name}</h3>
+              <span class="text-xs font-arabic text-stone-500 dark:text-stone-400 font-semibold">${prayer.arabic}</span>
+            </div>
+          </div>
+          
+          <div class="mt-2">
+            <span class="text-xl sm:text-2xl font-mono font-bold ${isNext ? 'text-gold-600 dark:text-gold-400' : 'text-stone-800 dark:text-stone-200'}">
+              ${formatTimeString(prayer.date)}
+            </span>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // ==========================================
+    // COMPASS ROTATION LOGIC
+    // ==========================================
+    function updateCompassVisual(qiblaBearing) {
+      const heading = state.currentHeading; // Device heading in degrees from North
+      
+      // Dial rotates counter to user heading
+      const compassOuter = document.getElementById('compass-outer');
+      const compassNeedle = document.getElementById('compass-needle');
+      const kaabaPointer = document.getElementById('kaaba-pointer-container');
+
+      if (compassOuter && compassNeedle && kaabaPointer) {
+        // Needle always indicates North-South relative to heading
+        compassNeedle.style.transform = `rotate(${-heading}deg)`;
+        compassOuter.style.transform = `rotate(${-heading}deg)`;
+
+        // Kaaba pointer points at the bearing offset by heading
+        const kaabaRelativeRotation = qiblaBearing - heading;
+        kaabaPointer.style.transform = `rotate(${kaabaRelativeRotation}deg)`;
+      }
+    }
+
+    // ==========================================
+    // MONTHLY TIMETABLE GENERATION
+    // ==========================================
+    function renderMonthlyTimetable(offsetMonths = 0) {
+      const targetDate = new Date();
+      targetDate.setMonth(targetDate.getMonth() + offsetMonths);
+
+      const year = targetDate.getFullYear();
+      const month = targetDate.getMonth();
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+      document.getElementById('timetable-title-month').textContent = `${monthNames[month]} ${year}`;
+      document.getElementById('timetable-badge-year').textContent = `${year} CE`;
+
+      const tbody = document.getElementById('monthly-table-body');
+      tbody.innerHTML = '';
+
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const currentDate = new Date(year, month, day);
+        const times = calculatePrayerTimesForDate(currentDate, state.lat, state.lng, state.method, state.asrSchool);
+
+        const isCurrentDay = (
+          today.getDate() === day &&
+          today.getMonth() === month &&
+          today.getFullYear() === year
+        );
+
+        const tr = document.createElement('tr');
+        tr.className = isCurrentDay 
+          ? 'bg-gold-500/15 font-semibold text-gold-600 dark:text-gold-300 border-l-4 border-gold-500' 
+          : 'hover:bg-stone-50 dark:hover:bg-emerald-800/30 text-stone-700 dark:text-stone-300';
+
+        const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
+
+        tr.innerHTML = `
+          <td class="py-3 px-3 font-sans font-medium">
+            <span class="inline-block w-6 text-stone-400 font-mono">${day}</span>
+            <span>${dayName}</span>
+            ${isCurrentDay ? '<span class="ml-1 text-[10px] bg-gold-500 text-emerald-950 px-1.5 py-0.5 rounded font-bold uppercase no-print">Today</span>' : ''}
+          </td>
+          <td class="py-3 px-3">${formatTimeString(times[0].date)}</td>
+          <td class="py-3 px-3 text-stone-500 dark:text-stone-400">${formatTimeString(times[1].date)}</td>
+          <td class="py-3 px-3">${formatTimeString(times[2].date)}</td>
+          <td class="py-3 px-3">${formatTimeString(times[3].date)}</td>
+          <td class="py-3 px-3">${formatTimeString(times[4].date)}</td>
+          <td class="py-3 px-3">${formatTimeString(times[5].date)}</td>
+        `;
+
+        tbody.appendChild(tr);
+      }
+    }
+
+    // ==========================================
+    // DIGITAL TASBIH LOGIC & FEEDBACK
+    // ==========================================
+    function incrementTasbih() {
+      state.tasbihCount++;
+      state.tasbihTotal++;
+
+      // Trigger soft vibration on supported mobile devices
+      if ("vibrate" in navigator) {
+        navigator.vibrate(25);
+      }
+
+      // Check if target cycle reached
+      if (state.tasbihCount >= state.tasbihTarget) {
+        state.tasbihCycles++;
+        state.tasbihCount = 0;
+        showToast(`Target of ${state.tasbihTarget} completed! Cycle recorded.`, 'fa-circle-check');
+        if ("vibrate" in navigator) {
+          navigator.vibrate([60, 50, 60]);
+        }
+      }
+
+      updateTasbihUI();
+    }
+
+    function updateTasbihUI() {
+      document.getElementById('tasbih-number-display').textContent = state.tasbihCount;
+      document.getElementById('tasbih-target-num').textContent = state.tasbihTarget;
+      document.getElementById('tasbih-cycles-count').textContent = state.tasbihCycles;
+      document.getElementById('tasbih-total-count').textContent = state.tasbihTotal;
+    }
+
+    function resetTasbih() {
+      state.tasbihCount = 0;
+      updateTasbihUI();
+      showToast("Tasbih counter reset", "fa-rotate-left");
+    }
+
+    // ==========================================
+    // POPULAR CITIES PICKER INITIALIZATION
+    // ==========================================
+    function initPopularCities() {
+      const container = document.getElementById('popular-cities-list');
+      container.innerHTML = '';
+
+      POPULAR_CITIES.forEach(city => {
+        const item = document.createElement('button');
+        item.className = 'city-item w-full text-left px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium hover:bg-gold-500/10 hover:text-gold-500 transition flex items-center justify-between border border-transparent hover:border-gold-500/30';
+        item.innerHTML = `
+          <span class="city-name font-medium">${city.name}</span>
+          <span class="text-xs text-stone-400 font-mono">${city.lat.toFixed(1)}°, ${city.lng.toFixed(1)}°</span>
+        `;
+        item.addEventListener('click', () => {
+          state.locationName = city.name;
+          state.lat = city.lat;
+          state.lng = city.lng;
+          if (city.method) state.method = city.method;
+          if (city.asr) state.asrSchool = city.asr;
+          
+          document.getElementById('setting-method').value = state.method;
+          document.getElementById('setting-asr-school').value = state.asrSchool;
+
+          updateAll();
+          renderMonthlyTimetable(state.selectedMonthOffset);
+          closeLocationModal();
+          showToast(`Location set to ${city.name}`, 'fa-map-pin');
+        });
+        container.appendChild(item);
+      });
+    }
+
+    function filterCities(searchQuery) {
+      const q = searchQuery.toLowerCase().trim();
+      const items = document.querySelectorAll('#popular-cities-list .city-item');
+      items.forEach(el => {
+        const name = el.querySelector('.city-name').textContent.toLowerCase();
+        if (name.includes(q)) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+    }
+
+    // ==========================================
+    // GEOLOCATION (NAVIGATOR.GEOLOCATION)
+    // ==========================================
+    function detectUserLocation() {
+      if (!navigator.geolocation) {
+        showToast("Geolocation is not supported by your browser.", "fa-triangle-exclamation");
+        return;
+      }
+
+      showToast("Accessing device GPS...", "fa-satellite");
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          state.lat = position.coords.latitude;
+          state.lng = position.coords.longitude;
+          state.locationName = `Custom Location (${state.lat.toFixed(2)}°, ${state.lng.toFixed(2)}°)`;
+
+          // Reverse geocode fallback query using open reverse geocoding API if available
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${state.lat}&lon=${state.lng}&zoom=10`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.address) {
+                const city = data.address.city || data.address.town || data.address.state || "Detected Area";
+                const country = data.address.country || "";
+                state.locationName = `${city}, ${country}`;
+                updateAll();
+              }
+            })
+            .catch(() => {
+              // Graceful fallback to coords name
+            })
+            .finally(() => {
+              updateAll();
+              renderMonthlyTimetable(state.selectedMonthOffset);
+              closeLocationModal();
+              showToast("Location updated successfully via GPS!", "fa-circle-check");
+            });
+        },
+        (error) => {
+          showToast("Unable to retrieve location. Please choose a city.", "fa-circle-xmark");
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    }
+
+    // ==========================================
+    // DEVICE ORIENTATION COMPASS LISTENER
+    // ==========================================
+    let orientationActive = false;
+    function requestOrientationPermission() {
+      // iOS 13+ requires explicit permission request
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === 'granted') {
+              startOrientationListener();
+            } else {
+              showToast("Compass orientation permission denied", "fa-triangle-exclamation");
+            }
+          })
+          .catch(console.error);
+      } else {
+        // Standard Android / Desktop modern browsers
+        startOrientationListener();
+      }
+    }
+
+    function startOrientationListener() {
+      if (orientationActive) return;
+
+      window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+      window.addEventListener('deviceorientation', handleOrientation, true);
+      orientationActive = true;
+      showToast("Live Device Compass Active! Rotate your phone horizontally.", "fa-compass");
+    }
+
+    function handleOrientation(event) {
+      let compassHeading = null;
+
+      // Webkit iOS proprietary compass heading
+      if (event.webkitCompassHeading) {
+        compassHeading = event.webkitCompassHeading;
+      } else if (event.alpha !== null) {
+        // Standard compass heading (Android / modern Chrome)
+        compassHeading = 360 - event.alpha;
+      }
+
+      if (compassHeading !== null) {
+        state.currentHeading = compassHeading;
+        document.getElementById('heading-slider').value = Math.round(compassHeading);
+        document.getElementById('manual-heading-val').textContent = `${Math.round(compassHeading)}°`;
+        const qiblaData = calculateQibla(state.lat, state.lng);
+        updateCompassVisual(qiblaData.bearing);
+      }
+    }
+
+    // ==========================================
+    // MODALS & NAVIGATION LOGIC
+    // ==========================================
+    const locationModal = document.getElementById('location-modal');
+    const settingsModal = document.getElementById('settings-modal');
+
+    function openLocationModal() {
+      locationModal.classList.remove('hidden');
+      setTimeout(() => locationModal.classList.remove('opacity-0'), 10);
+    }
+    function closeLocationModal() {
+      locationModal.classList.add('opacity-0');
+      setTimeout(() => locationModal.classList.add('hidden'), 200);
+    }
+
+    function openSettingsModal() {
+      // Sync inputs with state
+      document.getElementById('setting-method').value = state.method;
+      document.getElementById('setting-asr-school').value = state.asrSchool;
+      document.getElementById('setting-time-format').value = state.timeFormat;
+      document.getElementById('offset-fajr').value = state.offsetFajr;
+      document.getElementById('offset-maghrib').value = state.offsetMaghrib;
+
+      settingsModal.classList.remove('hidden');
+      setTimeout(() => settingsModal.classList.remove('opacity-0'), 10);
+    }
+    function closeSettingsModal() {
+      settingsModal.classList.add('opacity-0');
+      setTimeout(() => settingsModal.classList.add('hidden'), 200);
+    }
+
+    // ==========================================
+    // EVENT LISTENERS INITIALIZATION
+    // ==========================================
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Navigation Tab Switching
+      const tabs = document.querySelectorAll('.nav-tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => {
+            t.classList.remove('active-tab', 'border-gold-500', 'text-gold-600', 'dark:text-gold-400', 'bg-gold-500/10', 'dark:bg-emerald-900/50');
+            t.classList.add('border-transparent', 'text-stone-500', 'dark:text-stone-400');
+          });
+          tab.classList.add('active-tab', 'border-gold-500', 'text-gold-600', 'dark:text-gold-400', 'bg-gold-500/10', 'dark:bg-emerald-900/50');
+          tab.classList.remove('border-transparent', 'text-stone-500', 'dark:text-stone-400');
+
+          const targetId = tab.getAttribute('data-target');
+          document.querySelectorAll('.tab-content').forEach(content => {
+            if (content.id === targetId) {
+              content.classList.remove('hidden');
+            } else {
+              content.classList.add('hidden');
+            }
+          });
+
+          // Refresh monthly timetable if that tab is chosen
+          if (targetId === 'tab-timetable') {
+            renderMonthlyTimetable(state.selectedMonthOffset);
+          }
+        });
+      });
+
+      // 2. Theme Toggle (Dark / Light)
+      const themeBtn = document.getElementById('theme-toggle-btn');
+      const themeIcon = document.getElementById('theme-icon');
+      themeBtn.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        if (isDark) {
+          themeIcon.className = "fa-solid fa-sun text-base text-gold-500";
+        } else {
+          themeIcon.className = "fa-solid fa-moon text-base text-emerald-800";
+        }
+      });
+
+      // 3. Audio Notification Toggle
+      const audioBtn = document.getElementById('audio-toggle-btn');
+      const audioIcon = document.getElementById('audio-icon');
+      audioBtn.addEventListener('click', () => {
+        state.audioEnabled = !state.audioEnabled;
+        if (state.audioEnabled) {
+          audioIcon.className = 'fa-solid fa-volume-high text-base';
+          showToast('Audio notifications enabled', 'fa-volume-high');
+        } else {
+          audioIcon.className = 'fa-solid fa-volume-xmark text-base';
+          showToast('Audio notifications muted', 'fa-volume-xmark');
+        }
+      });
+
+      document.getElementById('btn-quick-adhan-sample').addEventListener('click', () => {
+        playAdhanNotificationChime();
+      });
+
+      // 4. Modals Triggers
+      document.getElementById('location-modal-btn').addEventListener('click', openLocationModal);
+      document.getElementById('close-location-modal').addEventListener('click', closeLocationModal);
+      locationModal.addEventListener('click', (e) => {
+        if (e.target === locationModal) closeLocationModal();
+      });
+
+      document.getElementById('settings-modal-btn').addEventListener('click', openSettingsModal);
+      document.getElementById('close-settings-modal').addEventListener('click', closeSettingsModal);
+      settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) closeSettingsModal();
+      });
+
+      // 5. GPS Detect Button
+      document.getElementById('btn-detect-gps').addEventListener('click', detectUserLocation);
+
+      // 6. Cities Search Filter
+      initPopularCities();
+      document.getElementById('city-search-input').addEventListener('input', (e) => {
+        filterCities(e.target.value);
+      });
+
+      // 7. Custom Coordinates Apply
+      document.getElementById('btn-apply-custom-coords').addEventListener('click', () => {
+        const latVal = parseFloat(document.getElementById('custom-lat').value);
+        const lngVal = parseFloat(document.getElementById('custom-lng').value);
+
+        if (isNaN(latVal) || isNaN(lngVal) || latVal < -90 || latVal > 90 || lngVal < -180 || lngVal > 180) {
+          showToast('Please enter valid latitude (-90 to 90) and longitude (-180 to 180).', 'fa-triangle-exclamation');
+          return;
+        }
+
+        state.lat = latVal;
+        state.lng = lngVal;
+        state.locationName = `Custom (${latVal.toFixed(2)}°, ${lngVal.toFixed(2)}°)`;
+        updateAll();
+        renderMonthlyTimetable(state.selectedMonthOffset);
+        closeLocationModal();
+        showToast('Custom coordinates applied', 'fa-circle-check');
+      });
+
+      // 8. Save Settings
+      document.getElementById('btn-save-settings').addEventListener('click', () => {
+        state.method = document.getElementById('setting-method').value;
+        state.asrSchool = document.getElementById('setting-asr-school').value;
+        state.timeFormat = document.getElementById('setting-time-format').value;
+        state.offsetFajr = parseInt(document.getElementById('offset-fajr').value) || 0;
+        state.offsetMaghrib = parseInt(document.getElementById('offset-maghrib').value) || 0;
+
+        closeSettingsModal();
+        updateAll();
+        renderMonthlyTimetable(state.selectedMonthOffset);
+        showToast('Settings saved successfully', 'fa-circle-check');
+      });
+
+      // 9. Qibla Manual Heading Slider (Testing & Desktop Calibration)
+      const headingSlider = document.getElementById('heading-slider');
+      headingSlider.addEventListener('input', (e) => {
+        state.currentHeading = parseFloat(e.target.value);
+        document.getElementById('manual-heading-val').textContent = `${Math.round(state.currentHeading)}°`;
+        const qiblaData = calculateQibla(state.lat, state.lng);
+        updateCompassVisual(qiblaData.bearing);
+      });
+
+      document.getElementById('btn-reset-heading').addEventListener('click', () => {
+        state.currentHeading = 0;
+        headingSlider.value = 0;
+        document.getElementById('manual-heading-val').textContent = '0° (North)';
+        const qiblaData = calculateQibla(state.lat, state.lng);
+        updateCompassVisual(qiblaData.bearing);
+      });
+
+      document.getElementById('btn-calibrate-compass').addEventListener('click', requestOrientationPermission);
+
+      // 10. Digital Tasbih Buttons
+      document.getElementById('tasbih-counter-button').addEventListener('click', incrementTasbih);
+      document.getElementById('tasbih-reset-btn').addEventListener('click', resetTasbih);
+      
+      document.getElementById('tasbih-target-33').addEventListener('click', () => {
+        state.tasbihTarget = 33;
+        updateTasbihUI();
+      });
+      document.getElementById('tasbih-target-99').addEventListener('click', () => {
+        state.tasbihTarget = 99;
+        updateTasbihUI();
+      });
+      document.getElementById('tasbih-target-100').addEventListener('click', () => {
+        state.tasbihTarget = 100;
+        updateTasbihUI();
+      });
+
+      // Tasbih Phrase Select Change
+      document.getElementById('tasbih-phrase-select').addEventListener('change', (e) => {
+        const parts = e.target.value.split('|');
+        document.getElementById('tasbih-arabic-display').textContent = parts[1];
+        document.getElementById('tasbih-english-display').textContent = `"${parts[2]}"`;
+      });
+
+      // 11. Ayat of the Day Refresh & Copy
+      let ayatIndex = 0;
+      function setAyat(idx) {
+        const item = AYAT_COLLECTION[idx % AYAT_COLLECTION.length];
+        document.getElementById('daily-ayat-arabic').textContent = item.arabic;
+        document.getElementById('daily-ayat-translation').textContent = `"${item.translation}"`;
+        document.getElementById('daily-ayat-ref').textContent = item.ref;
+      }
+
+      document.getElementById('refresh-ayat-btn').addEventListener('click', () => {
+        ayatIndex++;
+        setAyat(ayatIndex);
+      });
+
+      document.getElementById('copy-ayat-btn').addEventListener('click', () => {
+        const item = AYAT_COLLECTION[ayatIndex % AYAT_COLLECTION.length];
+        const textToCopy = `${item.arabic}\n"${item.translation}"\n- ${item.ref}`;
+        
+        // Execute copy with fallback
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          showToast('Ayat copied to clipboard!', 'fa-copy');
+        } catch (err) {
+          showToast('Failed to copy text', 'fa-triangle-exclamation');
+        }
+        document.body.removeChild(textArea);
+      });
+
+      // 12. Monthly Timetable Navigation & Print
+      document.getElementById('btn-month-prev').addEventListener('click', () => {
+        state.selectedMonthOffset--;
+        renderMonthlyTimetable(state.selectedMonthOffset);
+      });
+      document.getElementById('btn-month-next').addEventListener('click', () => {
+        state.selectedMonthOffset++;
+        renderMonthlyTimetable(state.selectedMonthOffset);
+      });
+      document.getElementById('btn-print-timetable').addEventListener('click', () => {
+        window.print();
+      });
+
+      // 13. Initial Render & Live Clock Interval
+      updateAll();
+      renderMonthlyTimetable(state.selectedMonthOffset);
+      updateTasbihUI();
+
+      // Live 1-second interval update for clock and dynamic countdown
+      setInterval(() => {
+        updateAll();
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
